@@ -1,6 +1,6 @@
 const socket = io();
 
-// ==== Règles ====
+// ==== règles ====
 const rules = [
   "interdiction de dire oui",
   "parler avec accent",
@@ -9,48 +9,42 @@ const rules = [
   "tout le monde finit son verre"
 ];
 
-// ==== Joueurs ====
+// ==== joueurs ====
 let lobbyPlayers = [];
 let playersGame = [];
 let currentPlayerName = "";
-let volume = 1;
 
 let bananaInterval = null;
 
-// ==== Pages ====
+
+// ==== pages ====
 const welcomePage = document.getElementById("welcome");
 const gamePage = document.getElementById("game");
 const lobbyPage = document.getElementById("lobby");
 const playPage = document.getElementById("play");
 const rankingPage = document.getElementById("ranking");
 
-// ==== Elements ====
+
+// ==== éléments ====
 const playerNameInput = document.getElementById("playerNameInput");
 const btnHostLobby = document.getElementById("btnHostLobby");
 const btnJoinLobby = document.getElementById("btnJoinLobby");
 const joinCodeContainer = document.getElementById("joinCodeContainer");
 const btnSubmitJoin = document.getElementById("btnSubmitJoin");
 const joinCodeInput = document.getElementById("joinCodeInput");
+
 const lobbyPlayersContainer = document.getElementById("lobbyPlayers");
 const btnStartGame = document.getElementById("btnStartGame");
-const btnBackFromLobby = document.getElementById("btnBackFromLobby");
 
-const btnSettings = document.getElementById("btnSettings");
-const settingsPanel = document.getElementById("settingsPanel");
-const btnSettingsSound = document.getElementById("btnSettingsSound");
-const btnSettingsRules = document.getElementById("btnSettingsRules");
-const soundPanel = document.getElementById("soundPanel");
-const rulesPanel = document.getElementById("rulesPanel");
-const volumeRange = document.getElementById("volumeRange");
-
-const singeAudio = document.getElementById("singe");
-const grossingeAudio = document.getElementById("grossinge");
-
-const ruleBox = document.getElementById("ruleBox");
 const playPlayers = document.getElementById("playPlayers");
+const ruleBox = document.getElementById("ruleBox");
+
 const rankingList = document.getElementById("rankingList");
 
-// ==== Navigation accueil → lobby ====
+const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
+
+
+// ==== navigation ====
 document.getElementById("btnToGame").onclick = () => {
 
   welcomePage.style.display = "none";
@@ -58,7 +52,19 @@ document.getElementById("btnToGame").onclick = () => {
 
 };
 
-// ==== Activation boutons ====
+
+// ==== bouton retour menu ====
+document.getElementById("btnBackLobby").onclick = () => {
+
+  gamePage.style.display = "none";
+  welcomePage.style.display = "block";
+
+  playerNameInput.value = "";
+
+};
+
+
+// ==== activation boutons ====
 playerNameInput.addEventListener("input", () => {
 
   currentPlayerName = playerNameInput.value.trim();
@@ -70,43 +76,10 @@ playerNameInput.addEventListener("input", () => {
 
 });
 
-// ==== PARAMETRES ====
-btnSettings.onclick = () => {
 
-  settingsPanel.style.display =
-    settingsPanel.style.display === "block" ? "none" : "block";
-
-  soundPanel.style.display = "none";
-  rulesPanel.style.display = "none";
-
-};
-
-btnSettingsSound.onclick = () => {
-
-  soundPanel.style.display = "block";
-  rulesPanel.style.display = "none";
-
-};
-
-btnSettingsRules.onclick = () => {
-
-  rulesPanel.style.display = "block";
-  soundPanel.style.display = "none";
-
-};
-
-volumeRange.addEventListener("input", () => {
-
-  volume = volumeRange.value / 100;
-
-  singeAudio.volume = volume;
-  grossingeAudio.volume = volume;
-
-});
-
-// =========================
+// ======================
 // LOBBY MULTIJOUEUR
-// =========================
+// ======================
 
 btnHostLobby.onclick = () => {
 
@@ -114,17 +87,19 @@ btnHostLobby.onclick = () => {
 
 };
 
+
 btnJoinLobby.onclick = () => {
 
   joinCodeContainer.style.display = "block";
 
 };
 
+
 btnSubmitJoin.onclick = () => {
 
   const code = joinCodeInput.value.trim();
 
-  if(!code) return alert("Entrez un code !");
+  if(!code) return alert("Entrez un code");
 
   socket.emit("joinLobby", {
     code: code,
@@ -133,7 +108,9 @@ btnSubmitJoin.onclick = () => {
 
 };
 
-// recevoir joueurs lobby
+
+// ==== recevoir joueurs ====
+
 socket.on("updatePlayers",(players)=>{
 
   lobbyPlayers = players;
@@ -145,18 +122,19 @@ socket.on("updatePlayers",(players)=>{
 
 });
 
+
 // ==== afficher lobby ====
 
 function renderLobbyPlayers(){
 
   let html = "";
 
-  lobbyPlayers.forEach((p,i)=>{
+  lobbyPlayers.forEach(p=>{
 
     html += `
-      <div class="player" style="margin:10px;padding:10px;border:1px solid #fff;border-radius:12px;">
-        ${p.name}
-      </div>
+    <div class="player">
+      ${p.name}
+    </div>
     `;
 
   });
@@ -167,6 +145,17 @@ function renderLobbyPlayers(){
 
 }
 
+
+// ==== afficher code lobby ====
+
+socket.on("lobbyCode",(code)=>{
+
+  lobbyCodeDisplay.innerText =
+  "Code du lobby : " + code;
+
+});
+
+
 // ==== lancer partie ====
 
 btnStartGame.onclick = () => {
@@ -174,6 +163,7 @@ btnStartGame.onclick = () => {
   socket.emit("startGame");
 
 };
+
 
 socket.on("startGame",(players)=>{
 
@@ -188,13 +178,15 @@ socket.on("startGame",(players)=>{
 
 });
 
-// ==== Ajouter quart ====
+
+// ==== ajouter quart ====
 
 function addQuart(i){
 
-  socket.emit("addQuart", i);
+  socket.emit("addQuart",i);
 
 }
+
 
 socket.on("updateGame",(players)=>{
 
@@ -203,6 +195,7 @@ socket.on("updateGame",(players)=>{
   renderPlay();
 
 });
+
 
 // ==== afficher joueurs ====
 
@@ -217,19 +210,17 @@ function renderPlay(){
     html += `
     <div class="player ${p.quart >= 4 ? "singe" : ""}">
 
-        <h3>
-        ${p.name} 🍻${p.shots}
-        </h3>
+      <h3>${p.name} 🍻${p.shots}</h3>
 
-        <div class="progress">
-          <div class="bar" style="width:${percent}%"></div>
-        </div>
-
-        <button onclick="addQuart(${i})">
-        +1 quart
-        </button>
-
+      <div class="progress">
+        <div class="bar" style="width:${percent}%"></div>
       </div>
+
+      <button onclick="addQuart(${i})">
+      +1 quart
+      </button>
+
+    </div>
     `;
 
   });
@@ -237,6 +228,7 @@ function renderPlay(){
   playPlayers.innerHTML = html;
 
 }
+
 
 // ==== règle aléatoire ====
 
@@ -248,6 +240,7 @@ document.getElementById("btnRandomRule").onclick = () => {
   ruleBox.innerText = "🎲 " + randomRule;
 
 };
+
 
 // ==== confetti ====
 
@@ -272,6 +265,7 @@ function confetti(){
 
 }
 
+
 // ==== bananes ====
 
 function bananaRain(){
@@ -295,12 +289,29 @@ function bananaRain(){
   },800);
 
 }
-const lobbyCodeDisplay =
-document.getElementById("lobbyCodeDisplay");
 
-socket.on("lobbyCode",(code)=>{
 
-  lobbyCodeDisplay.innerText =
-  "Code du lobby : " + code;
+// ==== bulles bière ====
 
-});
+function beerBubbles(){
+
+setInterval(()=>{
+
+let b = document.createElement("div");
+
+b.className = "bubble";
+
+b.style.left = Math.random()*100 + "vw";
+
+b.style.animationDuration =
+(4 + Math.random()*4) + "s";
+
+document.body.appendChild(b);
+
+setTimeout(()=>b.remove(),8000);
+
+},500);
+
+}
+
+beerBubbles();
